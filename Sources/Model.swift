@@ -147,7 +147,8 @@ final class Chime {
         prepared = true
 
         let sampleRate = 44_100.0
-        let seconds = 2.2
+        let seconds = 2.6
+        let release = 0.3
         let frames = AVAudioFrameCount(sampleRate * seconds)
         guard let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 2),
               let buf = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frames),
@@ -157,19 +158,22 @@ final class Chime {
         // Fundamental plus a quiet fifth and octave; each partial decays at its
         // own rate so the tail settles into a pure tone the way a bell does.
         let partials: [(freq: Double, gain: Double, decay: Double)] = [
-            (587.33, 0.55, 1.9),
-            (880.00, 0.22, 1.2),
-            (1174.66, 0.10, 0.8),
+            (587.33, 0.55, 1.15),
+            (880.00, 0.22, 0.80),
+            (1174.66, 0.10, 0.55),
         ]
 
         for i in 0..<Int(frames) {
             let t = Double(i) / sampleRate
             let attack = min(1, t / 0.012)
+            // Taper the last moments to true silence; without it the buffer
+            // ends while the tone is still ringing and you hear the cut.
+            let fade = min(1, max(0, (seconds - t) / release))
             var sample = 0.0
             for p in partials {
                 sample += p.gain * sin(2 * .pi * p.freq * t) * exp(-t / p.decay)
             }
-            let value = Float(sample * attack * 0.32)
+            let value = Float(sample * attack * fade * 0.32)
             channels[0][i] = value
             channels[1][i] = value
         }

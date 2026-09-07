@@ -38,8 +38,10 @@ Sources/Visuals.swift      sky, waves, progress ring
 Sources/ContentView.swift  layout, presets, drag-to-set
 Sources/FlowTimerApp.swift app entry point and window chrome
 Tools/Snapshot.swift       dev-only: renders each state to PNG
+Tools/Checks/main.swift    headless checks (timing, clamping, bell envelope)
 build.sh                   swiftc → Flow Timer.app
 install.sh                 build.sh → /Applications
+test.sh                    runs the checks; plays no audio
 ```
 
 The bell is generated at runtime (three decaying partials around D5), so there
